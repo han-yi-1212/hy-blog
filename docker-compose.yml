@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: blue-sakura-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: blue_sakura_blog
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - blue-sakura-network
+
+  redis:
+    image: redis:alpine
+    container_name: blue-sakura-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - blue-sakura-network
+
+  backend:
+    build: ./backend
+    container_name: blue-sakura-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/blue_sakura_blog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - blue-sakura-network
+
+  frontend:
+    build: ./frontend
+    container_name: blue-sakura-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - blue-sakura-network
+
+volumes:
+  mysql_data:
+
+networks:
+  blue-sakura-network:
+    driver: bridge

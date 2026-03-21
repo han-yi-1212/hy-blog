@@ -1,0 +1,9 @@
+-- V5.0 升级脚本
+-- 扩展user表
+ALTER TABLE user ADD COLUMN nickname VARCHAR(50);
+ALTER TABLE user ADD COLUMN avatar VARCHAR(255);
+ALTER TABLE user ADD COLUMN bio VARCHAR(255);
+
+-- 扩展comment表
+ALTER TABLE comment ADD COLUMN parent_id BIGINT DEFAULT NULL;
+ALTER TABLE comment ADD COLUMN root_id BIGINT DEFAULT NULL;
