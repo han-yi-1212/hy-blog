@@ -652,9 +652,9 @@ copies or substantial portions of the Software.
 
 ## 联系方式
 
-- 📧 邮箱：your.email@example.com
-- 💬 GitHub Issues：[提交问题](https://github.com/yourusername/hy-blog/issues)
-- 🌐 项目主页：https://github.com/yourusername/hy-blog
+- 📧 邮箱：2275789176@qq.com
+- 💬 GitHub Issues：[提交问题](https://github.com/han-yi-1212/hy-blog/issues)
+- 🌐 项目主页：https://github.com/han-yi-1212/hy-blog
 
 ---
 
