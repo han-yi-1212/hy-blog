@@ -6,7 +6,7 @@ import json
 app = FastAPI()
 
 # DeepSeek API配置
-API_KEY = "sk-010f097d937349daa2a1858e78b846a2"
+API_KEY = "api-key"
 API_URL = "https://api.deepseek.com/v1/chat/completions"
 MODEL = "deepseek-chat"
 
