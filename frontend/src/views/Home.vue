@@ -78,6 +78,7 @@
         
         <div class="right-sidebar">
           <SearchBox />
+          <TagCloud />
           <RandomPosts />
           <Heatmap :blogs="blogs" />
         </div>
@@ -91,12 +92,14 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { blogApi } from '@/api/blog'
+import { tagApi } from '@/api/tag'
 import { ElMessage } from 'element-plus'
 import HeroSection from '@/components/HeroSection.vue'
 import SearchBox from '@/components/SearchBox.vue'
 import RandomPosts from '@/components/RandomPosts.vue'
 import FixedNav from '@/components/FixedNav.vue'
 import Heatmap from '@/components/Heatmap.vue'
+import TagCloud from '@/components/TagCloud.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -112,6 +115,8 @@ const searchKeyword = ref('')
 
 const defaultAvatar = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%23FFB6C1"/%3E%3Ctext x="50" y="55" text-anchor="middle" fill="white" font-size="40"%3E🌸%3C/text%3E%3C/svg%3E'
 
+const selectedTag = ref('')
+
 const fetchBlogs = async () => {
   loading.value = true
   try {
@@ -122,6 +127,20 @@ const fetchBlogs = async () => {
         page: pageNum.value,
         size: pageSize.value
       })
+    } else if (selectedTag.value) {
+      // 通过标签名获取标签ID，然后查询
+      const tagRes = await tagApi.list()
+      if (tagRes.code === 200) {
+        const tag = tagRes.data.find(t => t.name === selectedTag.value)
+        if (tag) {
+          res = await blogApi.getByTag(tag.id, pageNum.value, pageSize.value)
+        } else {
+          res = await blogApi.getList({
+            page: pageNum.value,
+            size: pageSize.value
+          })
+        }
+      }
     } else {
       res = await blogApi.getList({
         page: pageNum.value,
@@ -188,6 +207,7 @@ const handlePageChange = (page) => {
 
 const clearSearch = () => {
   searchKeyword.value = ''
+  selectedTag.value = ''
   pageNum.value = 1
   router.push('/')
 }
@@ -203,8 +223,19 @@ watch(() => route.query.search, (newSearch) => {
   }
 }, { immediate: true })
 
+watch(() => route.query.tag, (newTag) => {
+  if (newTag) {
+    selectedTag.value = newTag
+    pageNum.value = 1
+    fetchBlogs()
+  } else {
+    selectedTag.value = ''
+    fetchBlogs()
+  }
+}, { immediate: true })
+
 onMounted(() => {
-  if (!route.query.search) {
+  if (!route.query.search && !route.query.tag) {
     fetchBlogs()
   }
 })

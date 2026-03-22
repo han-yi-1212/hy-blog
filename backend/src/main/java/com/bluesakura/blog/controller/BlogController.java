@@ -94,4 +94,22 @@ public class BlogController {
         Long currentUserId = principal != null ? principal.getUserId() : null;
         return Result.success(blogService.getRandomBlogs(size, currentUserId));
     }
+    
+    @GetMapping("/byTag/{tagId}")
+    public Result<Page<BlogVO>> getBlogsByTag(
+            @PathVariable Long tagId,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        Long currentUserId = principal != null ? principal.getUserId() : null;
+        return Result.success(blogService.getBlogsByTag(tagId, page, size, currentUserId));
+    }
+    
+    @GetMapping("/drafts")
+    public Result<Page<BlogVO>> getDraftList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return Result.success(blogService.getDraftList(principal.getUserId(), page, size));
+    }
 }

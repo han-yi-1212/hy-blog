@@ -24,6 +24,8 @@ public class Blog {
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
     
+    private String status; // draft: 草稿, published: 已发布
+    
     @TableField(exist = false)
     private String username;
     

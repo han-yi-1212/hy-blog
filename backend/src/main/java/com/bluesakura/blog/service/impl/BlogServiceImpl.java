@@ -10,7 +10,9 @@ import com.bluesakura.blog.mapper.BlogMapper;
 import com.bluesakura.blog.mapper.UserMapper;
 import com.bluesakura.blog.service.BlogService;
 import com.bluesakura.blog.service.LikeService;
+import com.bluesakura.blog.service.TagService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,20 +24,24 @@ public class BlogServiceImpl implements BlogService {
     private final BlogMapper blogMapper;
     private final UserMapper userMapper;
     private final LikeService likeService;
+    private final TagService tagService;
     
-    public BlogServiceImpl(BlogMapper blogMapper, UserMapper userMapper, LikeService likeService) {
+    public BlogServiceImpl(BlogMapper blogMapper, UserMapper userMapper, LikeService likeService, TagService tagService) {
         this.blogMapper = blogMapper;
         this.userMapper = userMapper;
         this.likeService = likeService;
+        this.tagService = tagService;
     }
     
     @Override
+    @Transactional
     public void createBlog(Long userId, BlogRequest request) {
         Blog blog = new Blog();
         blog.setUserId(userId);
         blog.setTitle(request.getTitle());
         blog.setContent(request.getContent());
         blog.setCoverImage(request.getCoverImage());
+        blog.setStatus(request.getStatus() != null ? request.getStatus() : "published");
         blog.setLikeCount(0);
         blog.setViewCount(0);
         
@@ -49,9 +55,15 @@ public class BlogServiceImpl implements BlogService {
         blog.setUpdateTime(LocalDateTime.now());
         
         blogMapper.insert(blog);
+        
+        // 添加标签
+        if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
+            tagService.addTagsToBlog(blog.getId(), request.getTagIds());
+        }
     }
     
     @Override
+    @Transactional
     public void updateBlog(Long userId, Long blogId, BlogRequest request) {
         Blog blog = blogMapper.selectById(blogId);
         
@@ -66,6 +78,9 @@ public class BlogServiceImpl implements BlogService {
         blog.setTitle(request.getTitle());
         blog.setContent(request.getContent());
         blog.setCoverImage(request.getCoverImage());
+        if (request.getStatus() != null) {
+            blog.setStatus(request.getStatus());
+        }
         
         // 重新计算字数和阅读时间
         int wordCount = request.getContent().length();
@@ -76,9 +91,15 @@ public class BlogServiceImpl implements BlogService {
         blog.setUpdateTime(LocalDateTime.now());
         
         blogMapper.updateById(blog);
+        
+        // 更新标签
+        if (request.getTagIds() != null) {
+            tagService.addTagsToBlog(blogId, request.getTagIds());
+        }
     }
     
     @Override
+    @Transactional
     public void deleteBlog(Long userId, Long blogId) {
         Blog blog = blogMapper.selectById(blogId);
         
@@ -90,6 +111,9 @@ public class BlogServiceImpl implements BlogService {
             throw new RuntimeException("无权限删除此博客");
         }
         
+        // 删除标签关联
+        tagService.removeTagsFromBlog(blogId);
+        
         blogMapper.deleteById(blogId);
     }
     
@@ -97,6 +121,12 @@ public class BlogServiceImpl implements BlogService {
     public Page<BlogVO> getBlogList(Integer page, Integer size, Long currentUserId) {
         Page<Blog> blogPage = new Page<>(page, size);
         LambdaQueryWrapper<Blog> queryWrapper = new LambdaQueryWrapper<>();
+        // 查询已发布的或status为null的（兼容旧数据）
+        queryWrapper.and(wrapper -> wrapper
+            .eq(Blog::getStatus, "published")
+            .or()
+            .isNull(Blog::getStatus)
+        );
         queryWrapper.orderByDesc(Blog::getCreateTime);
         
         blogMapper.selectPage(blogPage, queryWrapper);
@@ -104,19 +134,7 @@ public class BlogServiceImpl implements BlogService {
         Page<BlogVO> voPage = new Page<>(blogPage.getCurrent(), blogPage.getSize(), blogPage.getTotal());
         
         List<BlogVO> voList = blogPage.getRecords().stream().map(blog -> {
-            BlogVO vo = BlogVO.fromBlog(blog);
-            
-            User user = userMapper.selectById(blog.getUserId());
-            if (user != null) {
-                vo.setUsername(user.getUsername());
-            }
-            
-            if (currentUserId != null) {
-                vo.setLiked(likeService.hasLiked(blog.getId(), currentUserId));
-            } else {
-                vo.setLiked(false);
-            }
-            
+            BlogVO vo = convertToVO(blog, currentUserId);
             return vo;
         }).collect(Collectors.toList());
         
@@ -132,20 +150,7 @@ public class BlogServiceImpl implements BlogService {
             throw new RuntimeException("博客不存在");
         }
         
-        BlogVO vo = BlogVO.fromBlog(blog);
-        
-        User user = userMapper.selectById(blog.getUserId());
-        if (user != null) {
-            vo.setUsername(user.getUsername());
-        }
-        
-        if (currentUserId != null) {
-            vo.setLiked(likeService.hasLiked(blog.getId(), currentUserId));
-        } else {
-            vo.setLiked(false);
-        }
-        
-        return vo;
+        return convertToVO(blog, currentUserId);
     }
     
     @Override
@@ -161,29 +166,25 @@ public class BlogServiceImpl implements BlogService {
     public Page<BlogVO> searchBlogs(String keyword, Integer page, Integer size, Long currentUserId) {
         Page<Blog> blogPage = new Page<>(page, size);
         LambdaQueryWrapper<Blog> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.like(Blog::getTitle, keyword)
-                   .or()
-                   .like(Blog::getContent, keyword)
-                   .orderByDesc(Blog::getCreateTime);
+        // 查询已发布的或status为null的（兼容旧数据）
+        queryWrapper.and(wrapper -> wrapper
+            .eq(Blog::getStatus, "published")
+            .or()
+            .isNull(Blog::getStatus)
+        );
+        queryWrapper.and(wrapper -> wrapper
+            .like(Blog::getTitle, keyword)
+            .or()
+            .like(Blog::getContent, keyword)
+        );
+        queryWrapper.orderByDesc(Blog::getCreateTime);
         
         blogMapper.selectPage(blogPage, queryWrapper);
         
         Page<BlogVO> voPage = new Page<>(blogPage.getCurrent(), blogPage.getSize(), blogPage.getTotal());
         
         List<BlogVO> voList = blogPage.getRecords().stream().map(blog -> {
-            BlogVO vo = BlogVO.fromBlog(blog);
-            
-            User user = userMapper.selectById(blog.getUserId());
-            if (user != null) {
-                vo.setUsername(user.getUsername());
-            }
-            
-            if (currentUserId != null) {
-                vo.setLiked(likeService.hasLiked(blog.getId(), currentUserId));
-            } else {
-                vo.setLiked(false);
-            }
-            
+            BlogVO vo = convertToVO(blog, currentUserId);
             return vo;
         }).collect(Collectors.toList());
         
@@ -194,25 +195,89 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public List<BlogVO> getRandomBlogs(Integer size, Long currentUserId) {
         LambdaQueryWrapper<Blog> queryWrapper = new LambdaQueryWrapper<>();
+        // 查询已发布的或status为null的（兼容旧数据）
+        queryWrapper.and(wrapper -> wrapper
+            .eq(Blog::getStatus, "published")
+            .or()
+            .isNull(Blog::getStatus)
+        );
         queryWrapper.last("ORDER BY RAND() LIMIT " + size);
         
         List<Blog> blogs = blogMapper.selectList(queryWrapper);
         
         return blogs.stream().map(blog -> {
-            BlogVO vo = BlogVO.fromBlog(blog);
-            
-            User user = userMapper.selectById(blog.getUserId());
-            if (user != null) {
-                vo.setUsername(user.getUsername());
-            }
-            
-            if (currentUserId != null) {
-                vo.setLiked(likeService.hasLiked(blog.getId(), currentUserId));
-            } else {
-                vo.setLiked(false);
-            }
-            
-            return vo;
+            return convertToVO(blog, currentUserId);
         }).collect(Collectors.toList());
+    }
+    
+    @Override
+    public Page<BlogVO> getBlogsByTag(Long tagId, Integer page, Integer size, Long currentUserId) {
+        Page<Blog> blogPage = new Page<>(page, size);
+        List<Long> blogIds = blogMapper.selectBlogIdsByTagId(tagId);
+        
+        if (blogIds.isEmpty()) {
+            return new Page<>();
+        }
+        
+        LambdaQueryWrapper<Blog> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(Blog::getId, blogIds);
+        // 查询已发布的或status为null的（兼容旧数据）
+        queryWrapper.and(wrapper -> wrapper
+            .eq(Blog::getStatus, "published")
+            .or()
+            .isNull(Blog::getStatus)
+        );
+        queryWrapper.orderByDesc(Blog::getCreateTime);
+        
+        blogMapper.selectPage(blogPage, queryWrapper);
+        
+        Page<BlogVO> voPage = new Page<>(blogPage.getCurrent(), blogPage.getSize(), blogPage.getTotal());
+        
+        List<BlogVO> voList = blogPage.getRecords().stream().map(blog -> {
+            return convertToVO(blog, currentUserId);
+        }).collect(Collectors.toList());
+        
+        voPage.setRecords(voList);
+        return voPage;
+    }
+    
+    @Override
+    public Page<BlogVO> getDraftList(Long userId, Integer page, Integer size) {
+        Page<Blog> blogPage = new Page<>(page, size);
+        LambdaQueryWrapper<Blog> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Blog::getUserId, userId);
+        queryWrapper.eq(Blog::getStatus, "draft");
+        queryWrapper.orderByDesc(Blog::getUpdateTime);
+        
+        blogMapper.selectPage(blogPage, queryWrapper);
+        
+        Page<BlogVO> voPage = new Page<>(blogPage.getCurrent(), blogPage.getSize(), blogPage.getTotal());
+        
+        List<BlogVO> voList = blogPage.getRecords().stream().map(blog -> {
+            return convertToVO(blog, userId);
+        }).collect(Collectors.toList());
+        
+        voPage.setRecords(voList);
+        return voPage;
+    }
+    
+    private BlogVO convertToVO(Blog blog, Long currentUserId) {
+        BlogVO vo = BlogVO.fromBlog(blog);
+        
+        User user = userMapper.selectById(blog.getUserId());
+        if (user != null) {
+            vo.setUsername(user.getUsername());
+        }
+        
+        if (currentUserId != null) {
+            vo.setLiked(likeService.hasLiked(blog.getId(), currentUserId));
+        } else {
+            vo.setLiked(false);
+        }
+        
+        // 加载标签
+        vo.setTags(tagService.getTagsByBlogId(blog.getId()));
+        
+        return vo;
     }
 }

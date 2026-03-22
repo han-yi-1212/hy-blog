@@ -68,6 +68,18 @@
             <div class="blog-stats" v-if="blog.wordCount && blog.readTime">
               本文约 {{ blog.wordCount }} 字 · 阅读 {{ blog.readTime }} 分钟
             </div>
+            
+            <div class="blog-tags" v-if="blog.tags && blog.tags.length > 0">
+              <span class="tag-label">标签：</span>
+              <span
+                v-for="tag in blog.tags"
+                :key="tag.id"
+                class="tag-item"
+                @click="goToTag(tag)"
+              >
+                {{ tag.name }}
+              </span>
+            </div>
           </div>
           
           <div class="blog-content" v-html="formatContent(blog.content)"></div>
@@ -177,6 +189,7 @@ import { blogApi, feedbackApi } from '@/api/blog'
 import { aiApi } from '@/api/ai'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CommentSection from '@/components/CommentSection.vue'
+import { marked } from 'marked'
 
 const route = useRoute()
 const router = useRouter()
@@ -227,18 +240,20 @@ const formatDate = (date) => {
 
 const formatContent = (content) => {
   if (!content) return ''
-  return content
-    .replace(/\n/g, '<br>')
-    .replace(/#{1,6}\s(.+)/g, '<strong>$1</strong>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
+  return marked(content)
 }
 
 const goToAuthorProfile = () => {
   if (blog.value?.userId) {
     router.push(`/user/${blog.value.userId}`)
   }
+}
+
+const goToTag = (tag) => {
+  router.push({
+    path: '/',
+    query: { tag: tag.name }
+  })
 }
 
 const handleLike = async () => {
@@ -469,6 +484,27 @@ onMounted(() => {
   padding: 12px;
   background: rgba(255, 182, 193, 0.15);
   border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  
+  /* 自定义滚动条样式 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 182, 193, 0.1);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 143, 177, 0.5);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 143, 177, 0.8);
+  }
   
   .ai-label {
     font-weight: 600;
@@ -553,6 +589,34 @@ onMounted(() => {
   margin-bottom: 10px;
 }
 
+.blog-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  
+  .tag-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  
+  .tag-item {
+    padding: 4px 12px;
+    background: rgba(255, 143, 177, 0.15);
+    border-radius: 16px;
+    font-size: 13px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: rgba(255, 143, 177, 0.3);
+      transform: translateY(-1px);
+    }
+  }
+}
+
 // AI总结功能样式
 .ai-summary-section {
   margin: 16px 0 24px;
@@ -631,11 +695,132 @@ onMounted(() => {
   line-height: 1.8;
   margin-bottom: 40px;
   
+  :deep(h1) {
+    font-size: 2em;
+    margin: 0.67em 0;
+    font-weight: bold;
+  }
+  
+  :deep(h2) {
+    font-size: 1.5em;
+    margin: 0.75em 0;
+    font-weight: bold;
+  }
+  
+  :deep(h3) {
+    font-size: 1.17em;
+    margin: 0.83em 0;
+    font-weight: bold;
+  }
+  
+  :deep(h4) {
+    font-size: 1em;
+    margin: 1.12em 0;
+    font-weight: bold;
+  }
+  
+  :deep(h5) {
+    font-size: 0.83em;
+    margin: 1.5em 0;
+    font-weight: bold;
+  }
+  
+  :deep(h6) {
+    font-size: 0.67em;
+    margin: 1.67em 0;
+    font-weight: bold;
+  }
+  
+  :deep(p) {
+    margin: 1em 0;
+  }
+  
+  :deep(ul), :deep(ol) {
+    margin: 1em 0;
+    padding-left: 2em;
+  }
+  
+  :deep(li) {
+    margin: 0.5em 0;
+  }
+  
+  :deep(blockquote) {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    border-left: 4px solid var(--primary-color);
+    background: var(--bg-color);
+    color: var(--text-secondary);
+  }
+  
   :deep(code) {
     background: var(--bg-color);
     padding: 2px 8px;
     border-radius: 4px;
-    font-family: 'Consolas', monospace;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+  }
+  
+  :deep(pre) {
+    background: var(--bg-color);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1em 0;
+    
+    code {
+      background: none;
+      padding: 0;
+    }
+  }
+  
+  :deep(a) {
+    color: var(--primary-color);
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  
+  :deep(strong) {
+    font-weight: bold;
+  }
+  
+  :deep(em) {
+    font-style: italic;
+  }
+  
+  :deep(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+    
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    
+    th {
+      background: var(--bg-color);
+      font-weight: bold;
+    }
+    
+    tr:nth-child(even) {
+      background: var(--bg-color);
+    }
+  }
+  
+  :deep(hr) {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 2em 0;
+  }
+  
+  :deep(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
   }
 }
 

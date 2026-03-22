@@ -22,4 +22,8 @@ public interface BlogService {
     Page<BlogVO> searchBlogs(String keyword, Integer page, Integer size, Long currentUserId);
     
     List<BlogVO> getRandomBlogs(Integer size, Long currentUserId);
+    
+    Page<BlogVO> getBlogsByTag(Long tagId, Integer page, Integer size, Long currentUserId);
+    
+    Page<BlogVO> getDraftList(Long userId, Integer page, Integer size);
 }

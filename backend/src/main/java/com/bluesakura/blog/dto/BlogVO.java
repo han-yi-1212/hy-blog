@@ -1,9 +1,11 @@
 package com.bluesakura.blog.dto;
 
 import com.bluesakura.blog.entity.Blog;
+import com.bluesakura.blog.entity.Tag;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class BlogVO {
@@ -18,6 +20,8 @@ public class BlogVO {
     private Integer wordCount;
     private Integer readTime;
     private Boolean liked;
+    private String status;
+    private List<Tag> tags;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
     

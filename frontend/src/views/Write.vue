@@ -8,7 +8,7 @@
       </div>
       
       <nav class="nav">
-        <router-link to="/" class="nav-link">首页</router-link>
+        <a href="/" class="nav-link" @click.prevent="router.push('/')">首页</a>
       </nav>
     </header>
     
@@ -79,17 +79,31 @@
           </div>
           
           <div class="form-group">
+            <label>文章标签</label>
+            <TagSelector v-model="selectedTags" />
+          </div>
+          
+          <div class="form-group">
             <label>文章内容</label>
-            <textarea 
-              v-model="form.content"
-              class="input-glass content-input" 
+            <MarkdownEditor 
+              v-model="form.content" 
+              :height="500"
               placeholder="请输入文章内容，支持Markdown格式"
-              required
-            ></textarea>
+              @change="handleContentChange"
+            />
+          </div>
+          
+          <!-- 草稿提示 -->
+          <div v-if="lastSavedTime" class="draft-tip">
+            <span class="draft-icon">💾</span>
+            <span>已自动保存于 {{ formatTime(lastSavedTime) }}</span>
           </div>
           
           <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="$router.back()">
+            <button type="button" class="btn-secondary" @click="saveDraft">
+              保存草稿
+            </button>
+            <button type="button" class="btn-secondary" @click="router.push('/')">
               取消
             </button>
             <button type="submit" class="btn-primary" :disabled="loading">
@@ -103,33 +117,43 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { blogApi } from '@/api/blog'
 import { uploadApi } from '@/api/upload'
 import { aiApi } from '@/api/ai'
+import { tagApi } from '@/api/tag'
 import { ElMessage } from 'element-plus'
+import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import TagSelector from '@/components/TagSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const isEdit = computed(() => !!route.params.id)
 const logoExists = ref(true)
-const logoSrc = '/images/logo.png'
+const logoSrc = '/images/logo_transparent.png'
 const fileInput = ref(null)
 const uploading = ref(false)
 
 const form = reactive({
   title: '',
   content: '',
-  coverImage: ''
+  coverImage: '',
+  status: 'published'
 })
+
+const selectedTags = ref([])
 
 const loading = ref(false)
 
 // AI生成相关
 const aiTopic = ref('')
 const aiLoading = ref(false)
+
+// 草稿自动保存相关
+const lastSavedTime = ref(null)
+let autoSaveInterval = null
 
 const fetchBlog = async () => {
   if (!isEdit.value) return
@@ -140,6 +164,8 @@ const fetchBlog = async () => {
       form.title = res.data.title
       form.content = res.data.content
       form.coverImage = res.data.coverImage || ''
+      form.status = res.data.status || 'published'
+      selectedTags.value = res.data.tags || []
     } else {
       ElMessage.error('获取文章失败')
       router.push('/')
@@ -206,26 +232,77 @@ const generateContent = async () => {
   }
 }
 
+// 自动保存草稿
+const saveDraft = async () => {
+  if (!form.title.trim() && !form.content.trim()) {
+    return
+  }
+
+  try {
+    const draftData = {
+      ...form,
+      status: 'draft',
+      tagIds: selectedTags.value.map(tag => tag.id)
+    }
+
+    let res
+    if (isEdit.value) {
+      res = await blogApi.update(route.params.id, draftData)
+    } else {
+      res = await blogApi.create(draftData)
+    }
+
+    if (res.code === 200) {
+      lastSavedTime.value = new Date()
+      if (!isEdit.value && res.data) {
+        // 新创建的草稿，更新URL
+        router.replace(`/edit/${res.data}`)
+      }
+    }
+  } catch (error) {
+    console.error('自动保存失败:', error)
+  }
+}
+
+// 内容变化时触发自动保存
+const handleContentChange = () => {
+  // 内容变化时立即保存
+  saveDraft()
+}
+
+// 格式化时间
+const formatTime = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`
+}
+
 const handleSubmit = async () => {
   if (!form.title.trim()) {
     ElMessage.warning('请输入文章标题')
     return
   }
-  
+
   if (!form.content.trim()) {
     ElMessage.warning('请输入文章内容')
     return
   }
-  
+
   loading.value = true
   try {
+    const publishData = {
+      ...form,
+      status: 'published',
+      tagIds: selectedTags.value.map(tag => tag.id)
+    }
+
     let res
     if (isEdit.value) {
-      res = await blogApi.update(route.params.id, form)
+      res = await blogApi.update(route.params.id, publishData)
     } else {
-      res = await blogApi.create(form)
+      res = await blogApi.create(publishData)
     }
-    
+
     if (res.code === 200) {
       ElMessage.success(isEdit.value ? '更新成功' : '发布成功')
       router.push('/')
@@ -241,6 +318,18 @@ const handleSubmit = async () => {
 
 onMounted(() => {
   fetchBlog()
+  
+  // 启动自动保存（每30秒）
+  autoSaveInterval = setInterval(() => {
+    saveDraft()
+  }, 30000)
+})
+
+onUnmounted(() => {
+  // 清除自动保存定时器
+  if (autoSaveInterval) {
+    clearInterval(autoSaveInterval)
+  }
 })
 </script>
 
@@ -302,7 +391,7 @@ onMounted(() => {
 }
 
 .main-content {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -498,10 +587,20 @@ onMounted(() => {
   }
 }
 
-.content-input {
-  min-height: 400px;
-  resize: vertical;
-  line-height: 1.6;
+// 草稿提示样式
+.draft-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  color: #4CAF50;
+  font-size: 14px;
+  
+  .draft-icon {
+    font-size: 16px;
+  }
 }
 
 .form-actions {

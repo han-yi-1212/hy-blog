@@ -43,6 +43,14 @@ export const blogApi = {
   
   getRandom(size = 5) {
     return request.get('/blog/random', { params: { size } })
+  },
+  
+  getByTag(tagId, page = 1, size = 10) {
+    return request.get(`/blog/byTag/${tagId}`, { params: { page, size } })
+  },
+  
+  getDrafts(page = 1, size = 10) {
+    return request.get('/blog/drafts', { params: { page, size } })
   }
 }
 
