@@ -10,6 +10,7 @@ import com.bluesakura.blog.mapper.BlogMapper;
 import com.bluesakura.blog.mapper.UserMapper;
 import com.bluesakura.blog.service.BlogService;
 import com.bluesakura.blog.service.LikeService;
+import com.bluesakura.blog.service.RagService;
 import com.bluesakura.blog.service.TagService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,12 +26,14 @@ public class BlogServiceImpl implements BlogService {
     private final UserMapper userMapper;
     private final LikeService likeService;
     private final TagService tagService;
+    private final RagService ragService;
     
-    public BlogServiceImpl(BlogMapper blogMapper, UserMapper userMapper, LikeService likeService, TagService tagService) {
+    public BlogServiceImpl(BlogMapper blogMapper, UserMapper userMapper, LikeService likeService, TagService tagService, RagService ragService) {
         this.blogMapper = blogMapper;
         this.userMapper = userMapper;
         this.likeService = likeService;
         this.tagService = tagService;
+        this.ragService = ragService;
     }
     
     @Override
@@ -59,6 +62,11 @@ public class BlogServiceImpl implements BlogService {
         // 添加标签
         if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
             tagService.addTagsToBlog(blog.getId(), request.getTagIds());
+        }
+        
+        // 添加到知识库
+        if ("published".equals(blog.getStatus())) {
+            ragService.addBlogToKnowledge(blog.getId(), blog.getTitle(), blog.getContent());
         }
     }
     
@@ -95,6 +103,11 @@ public class BlogServiceImpl implements BlogService {
         // 更新标签
         if (request.getTagIds() != null) {
             tagService.addTagsToBlog(blogId, request.getTagIds());
+        }
+        
+        // 更新知识库
+        if ("published".equals(blog.getStatus())) {
+            ragService.addBlogToKnowledge(blog.getId(), blog.getTitle(), blog.getContent());
         }
     }
     
@@ -267,6 +280,7 @@ public class BlogServiceImpl implements BlogService {
         User user = userMapper.selectById(blog.getUserId());
         if (user != null) {
             vo.setUsername(user.getUsername());
+            vo.setNickname(user.getNickname());
         }
         
         if (currentUserId != null) {

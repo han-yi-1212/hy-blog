@@ -1,10 +1,13 @@
 package com.bluesakura.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.bluesakura.blog.dto.LoginRequest;
 import com.bluesakura.blog.dto.LoginResponse;
 import com.bluesakura.blog.dto.RegisterRequest;
+import com.bluesakura.blog.entity.Blog;
 import com.bluesakura.blog.entity.User;
+import com.bluesakura.blog.mapper.BlogMapper;
 import com.bluesakura.blog.mapper.UserMapper;
 import com.bluesakura.blog.security.JwtUtil;
 import com.bluesakura.blog.service.UserService;
@@ -17,11 +20,13 @@ import java.time.LocalDateTime;
 public class UserServiceImpl implements UserService {
     
     private final UserMapper userMapper;
+    private final BlogMapper blogMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     
-    public UserServiceImpl(UserMapper userMapper, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+    public UserServiceImpl(UserMapper userMapper, BlogMapper blogMapper, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
         this.userMapper = userMapper;
+        this.blogMapper = blogMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
     }
@@ -80,6 +85,21 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public void updateUser(User user) {
+        // 获取旧用户信息
+        User oldUser = userMapper.selectById(user.getId());
+        if (oldUser == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        
+        // 更新用户表
         userMapper.updateById(user);
+        
+        // 如果用户名发生变化，同步更新博客表中的用户名
+        if (user.getUsername() != null && !user.getUsername().equals(oldUser.getUsername())) {
+            LambdaUpdateWrapper<Blog> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(Blog::getUserId, user.getId())
+                        .set(Blog::getUsername, user.getUsername());
+            blogMapper.update(null, updateWrapper);
+        }
     }
 }

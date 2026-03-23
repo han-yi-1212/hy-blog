@@ -1,6 +1,7 @@
 package com.bluesakura.blog.controller;
 
 import com.bluesakura.blog.common.Result;
+import com.bluesakura.blog.dto.TagCreateRequest;
 import com.bluesakura.blog.entity.Tag;
 import com.bluesakura.blog.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +31,8 @@ public class TagController {
     }
     
     @PostMapping
-    public Result create(@RequestParam String name) {
-        Tag tag = tagService.create(name);
+    public Result create(@RequestBody TagCreateRequest request) {
+        Tag tag = tagService.create(request.getName());
         return Result.success(tag);
     }
     

@@ -1,6 +1,5 @@
 <template>
   <div class="tag-selector">
-    <label class="selector-label">文章标签</label>
     <div class="selected-tags">
       <el-tag
         v-for="tag in selectedTags"

@@ -38,7 +38,7 @@ const loading = ref(false)
 const fetchRandomPosts = async () => {
   loading.value = true
   try {
-    const res = await blogApi.getRandom(5)
+    const res = await blogApi.getRandom(4)
     posts.value = res.data || []
   } catch (error) {
     console.error('获取随机博客失败:', error)

@@ -44,6 +44,11 @@ const routes = [
     name: 'UserEdit',
     component: () => import('@/views/UserEdit.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/ai-chat',
+    name: 'AiChat',
+    component: () => import('@/views/AiChat.vue')
   }
 ]
 

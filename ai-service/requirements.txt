@@ -2,3 +2,6 @@ fastapi
 uvicorn
 requests
 pydantic
+sentence-transformers
+faiss-cpu
+numpy

@@ -49,7 +49,7 @@
             <div class="blog-meta">
               <span class="author" @click="goToAuthorProfile">
                 <el-icon><User /></el-icon>
-                {{ blog.username }}
+                {{ blog.nickname || blog.username }}
               </span>
               <span class="date">
                 <el-icon><Calendar /></el-icon>

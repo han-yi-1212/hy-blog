@@ -10,6 +10,10 @@
       <div class="nav-content">
         <div class="nav-links">
           <router-link to="/" class="nav-link">首页</router-link>
+          <router-link to="/ai-chat" class="nav-link ai-link">
+            <el-icon><ChatDotRound /></el-icon>
+            AI问答
+          </router-link>
           <template v-if="userStore.isLoggedIn">
             <router-link to="/write" class="nav-link">写文章</router-link>
             <el-dropdown @command="handleCommand" trigger="click">

@@ -38,8 +38,8 @@
             <span class="stat-label">文章</span>
           </div>
           <div class="stat-item">
-            <span class="stat-value">{{ commentCount }}</span>
-            <span class="stat-label">评论</span>
+            <span class="stat-value">{{ activityCount }}</span>
+            <span class="stat-label">动态</span>
           </div>
         </div>
       </div>
@@ -53,10 +53,10 @@
             文章
           </button>
           <button 
-            :class="['tab-btn', { active: activeTab === 'comments' }]" 
-            @click="activeTab = 'comments'"
+            :class="['tab-btn', { active: activeTab === 'activity' }]" 
+            @click="activeTab = 'activity'"
           >
-            评论
+            动态
           </button>
         </div>
         
@@ -86,21 +86,27 @@
             </div>
           </div>
           
-          <div v-if="activeTab === 'comments'" class="comment-list">
+          <div v-if="activeTab === 'activity'" class="activity-list">
             <div 
-              v-for="comment in comments" 
-              :key="comment.id" 
-              class="comment-item"
-              @click="$router.push(`/blog/${comment.blogId}`)"
+              v-for="activity in activities" 
+              :key="activity.id" 
+              class="activity-item"
+              @click="$router.push(`/blog/${activity.blogId}`)"
             >
-              <p class="comment-content">{{ comment.content }}</p>
-              <div class="comment-meta">
-                <span>{{ formatDate(comment.createTime) }}</span>
+              <div class="activity-icon">📝</div>
+              <div class="activity-content">
+                <p class="activity-text">
+                  <span class="activity-action">发布了文章</span>
+                  <span class="activity-title">《{{ activity.title }}》</span>
+                </p>
+                <div class="activity-meta">
+                  <span class="activity-time">{{ formatDateTime(activity.createTime) }}</span>
+                </div>
               </div>
             </div>
             
-            <div v-if="comments.length === 0" class="empty-state">
-              暂无评论
+            <div v-if="activities.length === 0" class="empty-state">
+              暂无动态
             </div>
           </div>
         </div>
@@ -124,7 +130,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { userApi } from '@/api/user'
 import { blogApi } from '@/api/blog'
-import { commentApi } from '@/api/comment'
 
 const route = useRoute()
 const router = useRouter()
@@ -132,11 +137,11 @@ const userStore = useUserStore()
 
 const user = ref(null)
 const blogs = ref([])
-const comments = ref([])
+const activities = ref([])
 const loading = ref(true)
 const activeTab = ref('blogs')
 const blogCount = ref(0)
-const commentCount = ref(0)
+const activityCount = ref(0)
 
 const logoExists = ref(true)
 const logoSrc = '/images/logo.jpg'
@@ -168,6 +173,17 @@ const fetchUserBlogs = async () => {
       const allBlogs = res.data.records || []
       blogs.value = allBlogs.filter(b => b.userId === Number(route.params.id))
       blogCount.value = blogs.value.length
+      
+      // 生成动态列表（按时间倒序排列的博客发布记录）
+      activities.value = blogs.value
+        .map(blog => ({
+          id: blog.id,
+          blogId: blog.id,
+          title: blog.title,
+          createTime: blog.createTime
+        }))
+        .sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
+      activityCount.value = activities.value.length
     }
   } catch (error) {
     console.error('获取博客列表失败:', error)
@@ -186,6 +202,17 @@ const formatDate = (date) => {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
+  })
+}
+
+const formatDateTime = (date) => {
+  if (!date) return ''
+  return new Date(date).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   })
 }
 
@@ -450,25 +477,59 @@ watch(() => route.params.id, () => {
   color: var(--text-secondary);
 }
 
-.comment-item {
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
   padding: 16px;
-  border-left: 3px solid var(--primary-light);
-  margin-bottom: 16px;
+  background: var(--bg-color);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   
   &:hover {
-    background: var(--bg-color);
+    background: var(--primary-light);
+    transform: translateX(5px);
   }
 }
 
-.comment-content {
-  color: var(--text-color);
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-color);
+  border-radius: 50%;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-text {
   margin-bottom: 8px;
   line-height: 1.5;
 }
 
-.comment-meta {
+.activity-action {
+  color: var(--text-secondary);
+}
+
+.activity-title {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.activity-meta {
   font-size: 12px;
   color: var(--text-secondary);
 }

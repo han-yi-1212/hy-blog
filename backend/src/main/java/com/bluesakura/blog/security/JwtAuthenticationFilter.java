@@ -27,19 +27,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = getTokenFromRequest(request);
         
-        if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
-            Long userId = jwtUtil.getUserId(token);
-            String username = jwtUtil.getUsername(token);
-            
-            UserPrincipal principal = new UserPrincipal(userId, username);
-            
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    principal,
-                    null,
-                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-            );
-            
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (StringUtils.hasText(token)) {
+            try {
+                if (jwtUtil.validateToken(token)) {
+                    Long userId = jwtUtil.getUserId(token);
+                    String username = jwtUtil.getUsername(token);
+                    
+                    UserPrincipal principal = new UserPrincipal(userId, username);
+                    
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                    );
+                    
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            } catch (Exception e) {
+                // Token验证失败，但不阻止请求继续（对于permitAll的路径）
+                // 记录日志但不做其他处理
+                System.out.println("Token验证失败: " + e.getMessage());
+            }
         }
         
         filterChain.doFilter(request, response);

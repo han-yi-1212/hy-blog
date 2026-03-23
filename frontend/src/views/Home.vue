@@ -27,6 +27,17 @@
               <div class="blog-content">
                 <h2 class="blog-title">{{ blog.title }}</h2>
                 <p class="blog-summary">{{ getSummary(blog.content) }}</p>
+                <div class="blog-tags" v-if="blog.tags && blog.tags.length > 0">
+                  <span 
+                    v-for="tag in blog.tags.slice(0, 3)" 
+                    :key="tag.id" 
+                    class="tag-item"
+                    @click.stop="goToTag(tag.name)"
+                  >
+                    {{ tag.name }}
+                  </span>
+                  <span v-if="blog.tags.length > 3" class="tag-more">+{{ blog.tags.length - 3 }}</span>
+                </div>
                 <div class="blog-footer">
                   <div class="blog-meta">
                     <span class="views">
@@ -48,7 +59,7 @@
                       class="author-avatar"
                       @click.stop="goToUser(blog.userId)"
                     />
-                    <span class="author-name" @click.stop="goToUser(blog.userId)">{{ blog.username }}</span>
+                    <span class="author-name" @click.stop="goToUser(blog.userId)">{{ blog.nickname || blog.username }}</span>
                     <span class="date">{{ formatDate(blog.createTime) }}</span>
                   </div>
                 </div>
@@ -80,7 +91,7 @@
           <SearchBox />
           <TagCloud />
           <RandomPosts />
-          <Heatmap :blogs="blogs" />
+          <Ranking :blogs="blogs" />
         </div>
       </div>
     </div>
@@ -98,7 +109,7 @@ import HeroSection from '@/components/HeroSection.vue'
 import SearchBox from '@/components/SearchBox.vue'
 import RandomPosts from '@/components/RandomPosts.vue'
 import FixedNav from '@/components/FixedNav.vue'
-import Heatmap from '@/components/Heatmap.vue'
+import Ranking from '@/components/Ranking.vue'
 import TagCloud from '@/components/TagCloud.vue'
 
 const router = useRouter()
@@ -165,6 +176,10 @@ const goToBlog = (id) => {
 
 const goToUser = (userId) => {
   router.push(`/user/${userId}`)
+}
+
+const goToTag = (tagName) => {
+  router.push(`/?tag=${encodeURIComponent(tagName)}`)
 }
 
 const handleLike = async (blog) => {
@@ -375,6 +390,36 @@ onMounted(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   flex: 1;
+}
+
+.blog-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  
+  .tag-item {
+    display: inline-block;
+    padding: 2px 10px;
+    background: rgba(255, 143, 177, 0.15);
+    border: 1px solid rgba(255, 143, 177, 0.3);
+    border-radius: 12px;
+    font-size: 12px;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: rgba(255, 143, 177, 0.3);
+      transform: translateY(-1px);
+    }
+  }
+  
+  .tag-more {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 2px 6px;
+  }
 }
 
 .blog-footer {
