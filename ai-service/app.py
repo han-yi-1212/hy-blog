@@ -8,7 +8,12 @@ from rag import init_rag, add_blog_to_knowledge, add_blogs_batch, rag_query, get
 
 app = FastAPI()
 
+<<<<<<< HEAD
 API_KEY = "sk-010f097d937349daa2a1858e78b846a2"
+=======
+# DeepSeek API配置
+API_KEY = "api-key"
+>>>>>>> 2cfd205b3c8d9a8a08ce88f710887ab67894c607
 API_URL = "https://api.deepseek.com/v1/chat/completions"
 MODEL = "deepseek-chat"
 
