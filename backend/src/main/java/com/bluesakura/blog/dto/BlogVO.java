@@ -13,6 +13,7 @@ public class BlogVO {
     private Long userId;
     private String username;
     private String nickname;
+    private String userAvatar;
     private String title;
     private String content;
     private String coverImage;

@@ -928,13 +928,8 @@ copies or substantial portions of the Software.
 ## 联系方式
 
 - 📧 邮箱：2275789176@qq.com
-<<<<<<< HEAD
 - 💬 GitHub Issues：[提交问题](https://github.com/hanyi-1212/hy-blog/issues)
 - 🌐 项目主页：https://github.com/hanyi-1212/hy-blog
-=======
-- 💬 GitHub Issues：[提交问题](https://github.com/han-yi-1212/hy-blog/issues)
-- 🌐 项目主页：https://github.com/han-yi-1212/hy-blog
->>>>>>> 2cfd205b3c8d9a8a08ce88f710887ab67894c607
 
 ---
 

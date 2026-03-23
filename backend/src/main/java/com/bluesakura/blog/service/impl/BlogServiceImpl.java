@@ -281,6 +281,7 @@ public class BlogServiceImpl implements BlogService {
         if (user != null) {
             vo.setUsername(user.getUsername());
             vo.setNickname(user.getNickname());
+            vo.setUserAvatar(user.getAvatar());
         }
         
         if (currentUserId != null) {
