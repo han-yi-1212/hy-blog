@@ -3,12 +3,17 @@ from pydantic import BaseModel
 from typing import List, Optional
 import requests
 import json
+import os
+from dotenv import load_dotenv
 
 from rag import init_rag, add_blog_to_knowledge, add_blogs_batch, rag_query, get_knowledge_stats, clear_knowledge_base
 
+# 加载环境变量
+load_dotenv()
+
 app = FastAPI()
 
-API_KEY = "sk-89696821e8db4aebaa99a0cabebe8299"
+API_KEY = os.getenv("API_KEY")
 API_URL = "https://api.deepseek.com/v1/chat/completions"
 MODEL = "deepseek-chat"
 
