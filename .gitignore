@@ -30,4 +30,6 @@ __pycache__/
 *.pyc
 
 # 敏感文件
-ai-service/app.py
+*.env
+.env.local
+.env.*.local
