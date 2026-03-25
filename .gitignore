@@ -1,0 +1,33 @@
+# 依赖包
+node_modules/
+backend/target/
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# IDE 配置
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 日志文件
+logs
+*.log
+
+# 上传文件
+upload/
+
+# 编译产物
+dist/
+build/
+
+# 测试文件
+__pycache__/
+*.pyc
+
+# 敏感文件
+ai-service/app.py
