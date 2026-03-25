@@ -37,6 +37,7 @@ com\bluesakura\blog\BlogApplication.class
 com\bluesakura\blog\entity\Tag.class
 com\bluesakura\blog\service\TagService$TagCount.class
 com\bluesakura\blog\service\FeedbackService.class
+com\bluesakura\blog\controller\AdminController.class
 com\bluesakura\blog\mapper\UserMapper.class
 com\bluesakura\blog\dto\LoginRequest.class
 com\bluesakura\blog\service\CommentService.class

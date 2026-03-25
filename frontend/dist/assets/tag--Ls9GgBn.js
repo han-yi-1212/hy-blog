@@ -1,0 +1,1 @@
+import{B as e}from"./index-X1jxOxUP.js";const a={list(){return e.get("/tag/list")},create(t){return e.post("/tag",{name:t})},delete(t){return e.delete(`/tag/${t}`)},getBlogTags(t){return e.get(`/tag/blog/${t}`)},addTagsToBlog(t,g){return e.post(`/tag/blog/${t}`,g)},getTagCloud(){return e.get("/tag/cloud")}};export{a as t};

@@ -17,5 +17,6 @@ public class User {
     private String nickname;
     private String avatar;
     private String bio;
+    private String role; // 'user' 或 'admin'
     private LocalDateTime createTime;
 }

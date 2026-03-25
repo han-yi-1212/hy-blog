@@ -14,6 +14,7 @@ E:\自主博客\backend\src\main\java\com\bluesakura\blog\config\RestTemplateCon
 E:\自主博客\backend\src\main\java\com\bluesakura\blog\config\AIConfig.java
 E:\自主博客\backend\src\main\java\com\bluesakura\blog\common\Result.java
 E:\自主博客\backend\src\main\java\com\bluesakura\blog\BlogApplication.java
+E:\自主博客\backend\src\main\java\com\bluesakura\blog\controller\AdminController.java
 E:\自主博客\backend\src\main\java\com\bluesakura\blog\mapper\BlogMapper.java
 E:\自主博客\backend\src\main\java\com\bluesakura\blog\mapper\CommentMapper.java
 E:\自主博客\backend\src\main\java\com\bluesakura\blog\service\impl\RagServiceImpl.java

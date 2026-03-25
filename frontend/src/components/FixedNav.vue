@@ -16,6 +16,7 @@
           </router-link>
           <template v-if="userStore.isLoggedIn">
             <router-link to="/write" class="nav-link">写文章</router-link>
+            <router-link to="/admin" class="nav-link" v-if="userStore.isAdmin">管理后台</router-link>
             <el-dropdown @command="handleCommand" trigger="click">
               <span class="user-info">
                 <el-avatar :size="28" :src="userStore.userInfo?.avatar">

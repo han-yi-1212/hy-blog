@@ -44,6 +44,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole("user"); // 默认角色为user
         user.setCreateTime(LocalDateTime.now());
         
         userMapper.insert(user);
@@ -63,7 +64,7 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("密码错误");
         }
         
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
         
         LoginResponse response = new LoginResponse();
         response.setToken(token);
@@ -73,6 +74,7 @@ public class UserServiceImpl implements UserService {
         userInfo.setUsername(user.getUsername());
         userInfo.setNickname(user.getNickname() != null ? user.getNickname() : user.getUsername());
         userInfo.setAvatar(user.getAvatar());
+        userInfo.setRole(user.getRole());
         response.setUser(userInfo);
         
         return response;

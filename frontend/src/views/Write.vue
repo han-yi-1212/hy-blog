@@ -288,6 +288,12 @@ const handleSubmit = async () => {
     return
   }
 
+  // 标签校验
+  if (!selectedTags.value || selectedTags.value.length === 0) {
+    ElMessage.warning('请至少选择一个标签')
+    return
+  }
+
   loading.value = true
   try {
     const publishData = {

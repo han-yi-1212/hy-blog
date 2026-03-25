@@ -67,16 +67,6 @@
             </div>
           </div>
           
-          <div class="pagination" v-if="total > pageSize">
-            <el-pagination
-              v-model:current-page="currentPage"
-              :page-size="pageSize"
-              :total="total"
-              layout="prev, pager, next"
-              @current-change="handlePageChange"
-              background
-            />
-          </div>
           
           <div v-if="blogs.length === 0 && !loading" class="empty-state glass-card">
             <el-icon :size="60"><Document /></el-icon>
@@ -116,11 +106,7 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-const currentPage = ref(1)
 const blogs = ref([])
-const pageNum = ref(1)
-const pageSize = ref(10)
-const total = ref(0)
 const loading = ref(false)
 const searchKeyword = ref('')
 
@@ -131,36 +117,49 @@ const selectedTag = ref('')
 const fetchBlogs = async () => {
   loading.value = true
   try {
+    console.log('Fetching blogs...')
+    console.log('Selected tag:', selectedTag.value)
+    console.log('Search keyword:', searchKeyword.value)
     let res
     if (searchKeyword.value) {
       res = await blogApi.search({
         keyword: searchKeyword.value,
-        page: pageNum.value,
-        size: pageSize.value
+        page: 1,
+        size: 100
       })
     } else if (selectedTag.value) {
+      console.log('Querying blogs by tag:', selectedTag.value)
       // 通过标签名获取标签ID，然后查询
       const tagRes = await tagApi.list()
+      console.log('Tag list response:', tagRes)
       if (tagRes.code === 200) {
         const tag = tagRes.data.find(t => t.name === selectedTag.value)
+        console.log('Found tag:', tag)
         if (tag) {
-          res = await blogApi.getByTag(tag.id, pageNum.value, pageSize.value)
+          console.log('Querying blogs for tag ID:', tag.id)
+          res = await blogApi.getByTag(tag.id, 1, 100)
+          console.log('Tag blogs response:', res)
         } else {
+          console.log('Tag not found, querying all blogs')
           res = await blogApi.getList({
-            page: pageNum.value,
-            size: pageSize.value
+            page: 1,
+            size: 100
           })
+          console.log('All blogs response:', res)
         }
       }
     } else {
+      console.log('Querying all blogs')
+
       res = await blogApi.getList({
-        page: pageNum.value,
-        size: pageSize.value
+        page: 1,
+        size: 100
       })
+      console.log('All blogs response:', res)
     }
-    if (res.code === 200) {
-      blogs.value = res.data.records
-      total.value = res.data.total
+    if (res && res.code === 200) {
+      console.log('Response data:', res.data)
+      blogs.value = res.data.records || []
     }
   } catch (error) {
     console.error('获取博客列表失败:', error)
@@ -216,21 +215,19 @@ const formatDate = (date) => {
 }
 
 const handlePageChange = (page) => {
-  pageNum.value = page
+  currentPage.value = page
   fetchBlogs()
 }
 
 const clearSearch = () => {
   searchKeyword.value = ''
   selectedTag.value = ''
-  pageNum.value = 1
   router.push('/')
 }
 
 watch(() => route.query.search, (newSearch) => {
   if (newSearch) {
     searchKeyword.value = newSearch
-    pageNum.value = 1
     fetchBlogs()
   } else {
     searchKeyword.value = ''
@@ -241,7 +238,6 @@ watch(() => route.query.search, (newSearch) => {
 watch(() => route.query.tag, (newTag) => {
   if (newTag) {
     selectedTag.value = newTag
-    pageNum.value = 1
     fetchBlogs()
   } else {
     selectedTag.value = ''

@@ -14,6 +14,10 @@
             <el-icon><Edit /></el-icon>
             写文章
           </router-link>
+          <router-link to="/admin" class="nav-link" v-if="userStore.isAdmin">
+            <el-icon><Setting /></el-icon>
+            管理后台
+          </router-link>
           <el-dropdown @command="handleCommand">
             <span class="user-info">
               <el-avatar :size="32" :src="userStore.userInfo?.avatar">
@@ -182,7 +186,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { blogApi, feedbackApi } from '@/api/blog'
@@ -350,9 +354,39 @@ const generateSummary = async () => {
 
 
 
+const addCopyButtons = () => {
+  // 给所有代码块添加复制按钮
+  document.querySelectorAll('pre').forEach(block => {
+    // 检查是否已经有复制按钮
+    if (!block.querySelector('.copy-btn')) {
+      const btn = document.createElement('button')
+      btn.innerText = '复制'
+      btn.className = 'copy-btn'
+
+      btn.onclick = () => {
+        const code = block.innerText
+        navigator.clipboard.writeText(code).then(() => {
+          btn.innerText = '已复制'
+          setTimeout(() => {
+            btn.innerText = '复制'
+          }, 2000)
+        })
+      }
+
+      block.style.position = 'relative'
+      block.appendChild(btn)
+    }
+  })
+}
+
 onMounted(() => {
   fetchBlog()
 })
+
+watch(() => blog.value, () => {
+  // 博客内容更新后，添加复制按钮
+  setTimeout(addCopyButtons, 100)
+}, { deep: true })
 </script>
 
 <style lang="scss" scoped>
@@ -766,10 +800,30 @@ onMounted(() => {
     border-radius: 8px;
     overflow-x: auto;
     margin: 1em 0;
+    position: relative;
     
     code {
       background: none;
       padding: 0;
+    }
+  }
+  
+  :deep(.copy-btn) {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #FF8FB1;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: #FF5C8A;
+      transform: translateY(-2px);
     }
   }
   

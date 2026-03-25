@@ -32,13 +32,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtUtil.validateToken(token)) {
                     Long userId = jwtUtil.getUserId(token);
                     String username = jwtUtil.getUsername(token);
+                    String role = jwtUtil.getRole(token);
                     
-                    UserPrincipal principal = new UserPrincipal(userId, username);
+                    UserPrincipal principal = new UserPrincipal(userId, username, role);
+                    
+                    // 根据角色设置权限
+                    String authority = "ROLE_USER";
+                    if ("admin".equals(role)) {
+                        authority = "ROLE_ADMIN";
+                    }
                     
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             principal,
                             null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                            Collections.singletonList(new SimpleGrantedAuthority(authority))
                     );
                     
                     SecurityContextHolder.getContext().setAuthentication(authentication);

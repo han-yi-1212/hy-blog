@@ -8,6 +8,8 @@ export const useUserStore = defineStore('user', () => {
   
   const isLoggedIn = computed(() => !!token.value)
   
+  const isAdmin = computed(() => userInfo.value?.role === 'admin')
+  
   const setToken = (newToken) => {
     token.value = newToken
     localStorage.setItem('token', newToken)
@@ -59,6 +61,7 @@ export const useUserStore = defineStore('user', () => {
     token,
     userInfo,
     isLoggedIn,
+    isAdmin,
     setToken,
     setUserInfo,
     updateUserInfo,

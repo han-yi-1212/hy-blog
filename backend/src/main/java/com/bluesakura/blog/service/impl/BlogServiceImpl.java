@@ -39,6 +39,11 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional
     public void createBlog(Long userId, BlogRequest request) {
+        // 标签校验 - 发布状态必须选择标签
+        if ("published".equals(request.getStatus()) && (request.getTagIds() == null || request.getTagIds().isEmpty())) {
+            throw new RuntimeException("发布文章必须选择至少一个标签");
+        }
+        
         Blog blog = new Blog();
         blog.setUserId(userId);
         blog.setTitle(request.getTitle());
@@ -81,6 +86,12 @@ public class BlogServiceImpl implements BlogService {
         
         if (!blog.getUserId().equals(userId)) {
             throw new RuntimeException("无权限修改此博客");
+        }
+        
+        // 标签校验 - 发布状态必须选择标签
+        String status = request.getStatus() != null ? request.getStatus() : blog.getStatus();
+        if ("published".equals(status) && (request.getTagIds() == null || request.getTagIds().isEmpty())) {
+            throw new RuntimeException("发布文章必须选择至少一个标签");
         }
         
         blog.setTitle(request.getTitle());
