@@ -1,5 +1,13 @@
 <template>
   <div class="home-page">
+    <!-- 漂浮装饰元素 -->
+    <div class="floating-deco" style="top: 15%; left: 3%; font-size: 35px; animation-delay: 0s;">⭐</div>
+    <div class="floating-deco" style="top: 25%; right: 5%; font-size: 45px; animation-delay: 1s;">☁️</div>
+    <div class="floating-deco" style="top: 45%; left: 8%; font-size: 30px; animation-delay: 2s;">🌸</div>
+    <div class="floating-deco" style="top: 65%; right: 3%; font-size: 40px; animation-delay: 0.5s;">🍭</div>
+    <div class="floating-deco" style="top: 80%; left: 5%; font-size: 35px; animation-delay: 1.5s;">🎀</div>
+    <div class="floating-deco" style="top: 35%; right: 8%; font-size: 32px; animation-delay: 2.5s;">💫</div>
+    
     <FixedNav />
     <HeroSection />
     

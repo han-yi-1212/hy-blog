@@ -364,12 +364,46 @@ const addCopyButtons = () => {
       btn.className = 'copy-btn'
 
       btn.onclick = () => {
-        const code = block.innerText
-        navigator.clipboard.writeText(code).then(() => {
-          btn.innerText = '已复制'
-          setTimeout(() => {
-            btn.innerText = '复制'
-          }, 2000)
+        // 只获取code标签的内容，排除复制按钮的文本
+        const codeElement = block.querySelector('code')
+        const code = codeElement ? codeElement.innerText : block.innerText
+        
+        // 复制到剪贴板，兼容不同浏览器
+        const copyToClipboard = async (text) => {
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(text)
+              return true
+            } else {
+              // 备选方案：使用 document.execCommand
+              const textarea = document.createElement('textarea')
+              textarea.value = text
+              textarea.style.position = 'fixed'
+              textarea.style.left = '-9999px'
+              document.body.appendChild(textarea)
+              textarea.select()
+              const successful = document.execCommand('copy')
+              document.body.removeChild(textarea)
+              return successful
+            }
+          } catch (err) {
+            console.error('复制失败:', err)
+            return false
+          }
+        }
+        
+        copyToClipboard(code).then(success => {
+          if (success) {
+            btn.innerText = '已复制'
+            setTimeout(() => {
+              btn.innerText = '复制'
+            }, 2000)
+          } else {
+            btn.innerText = '复制失败'
+            setTimeout(() => {
+              btn.innerText = '复制'
+            }, 2000)
+          }
         })
       }
 
@@ -795,23 +829,25 @@ watch(() => blog.value, () => {
   }
   
   :deep(pre) {
-    background: var(--bg-color);
+    background: #2d2d2d;
     padding: 16px;
     border-radius: 8px;
     overflow-x: auto;
     margin: 1em 0;
+    border: 1px solid #444;
     position: relative;
     
     code {
       background: none;
       padding: 0;
+      color: #e0e0e0;
     }
   }
   
   :deep(.copy-btn) {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 10px;
+    right: 10px;
     background: #FF8FB1;
     color: white;
     border: none;
@@ -820,10 +856,31 @@ watch(() => blog.value, () => {
     cursor: pointer;
     font-size: 12px;
     transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    pointer-events: auto;
+    user-select: none;
+    white-space: nowrap;
     
     &:hover {
       background: #FF5C8A;
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+  }
+  
+  /* 暗色模式下的代码块样式 */
+  [data-theme="dark"] :deep(pre) {
+    background: #1e1e1e;
+    border-color: #333;
+    
+    code {
+      color: #d4d4d4;
     }
   }
   

@@ -98,6 +98,37 @@ onUnmounted(() => {
     cancelAnimationFrame(animationId)
   }
 })
+
+// 点击撒花效果
+const sparkles = ['✨', '🌸', '⭐', '💫', '🎀', '🍬', '🌟']
+
+const createClickSparkle = (e) => {
+  const sparkle = document.createElement('div')
+  sparkle.className = 'click-sparkle'
+  sparkle.innerHTML = sparkles[Math.floor(Math.random() * sparkles.length)]
+  sparkle.style.left = e.clientX + 'px'
+  sparkle.style.top = e.clientY + 'px'
+  
+  // 随机飞散方向
+  const angle = Math.random() * Math.PI * 2
+  const distance = 50 + Math.random() * 50
+  sparkle.style.setProperty('--tx', Math.cos(angle) * distance + 'px')
+  sparkle.style.setProperty('--ty', Math.sin(angle) * distance + 'px')
+  
+  document.body.appendChild(sparkle)
+  
+  setTimeout(() => {
+    sparkle.remove()
+  }, 800)
+}
+
+onMounted(() => {
+  document.addEventListener('click', createClickSparkle)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', createClickSparkle)
+})
 </script>
 
 <style lang="scss">

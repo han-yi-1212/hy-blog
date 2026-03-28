@@ -158,3 +158,269 @@ body {
   opacity: 0;
   transform: translateY(-20px);
 }
+
+// ===== 可爱动态风格增强 =====
+
+// 波点背景图案
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(var(--primary-light) 1.5px, transparent 1.5px);
+  background-size: 25px 25px;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+// 漂浮装饰元素
+.floating-deco {
+  position: fixed;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.6;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+// 博客卡片糯米团子风格
+.blog-card {
+  border-radius: 30px 50px 40px 60px / 50px 40px 60px 30px !important;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  &:hover {
+    transform: scale(1.02) rotate(1deg) !important;
+    border-radius: 50px 30px 60px 40px / 40px 60px 30px 50px !important;
+    box-shadow: 
+      0 15px 40px rgba(255, 143, 177, 0.25),
+      0 5px 0 var(--primary-light) !important;
+    
+    &::before {
+      opacity: 1;
+    }
+  }
+}
+
+// 标签可爱样式
+.tag-item {
+  display: inline-block;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+  color: white;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(255, 92, 138, 0.3);
+  
+  &:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 0 rgba(255, 92, 138, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 0 rgba(255, 92, 138, 0.3);
+  }
+}
+
+// 按钮泡泡感
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 0 var(--primary-dark) !important;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 30%;
+    height: 40%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  
+  &:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 9px 0 var(--primary-dark) !important;
+  }
+  
+  &:active {
+    transform: translateY(3px) !important;
+    box-shadow: 0 3px 0 var(--primary-dark) !important;
+  }
+}
+
+// 心跳动画
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+
+.likes {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover .heart {
+    animation: heartbeat 1s ease-in-out infinite;
+  }
+  
+  &.liked .heart {
+    animation: heartbeat 0.6s ease-in-out;
+  }
+}
+
+// 头像旋转动画
+.author-avatar {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 3px solid var(--primary-light);
+  
+  &:hover {
+    transform: scale(1.1) rotate(10deg);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(255, 143, 177, 0.5);
+  }
+}
+
+// 弹跳动画
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+// 摇摆动画
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+.wiggle:hover {
+  animation: wiggle 0.5s ease-in-out infinite;
+}
+
+// 闪烁动画
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+// 侧边栏小挂件可爱风格
+.sidebar-item {
+  border-radius: 30px !important;
+  position: relative;
+  
+  &::before {
+    content: '🌸';
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    font-size: 24px;
+    animation: bounce 2s ease-in-out infinite;
+  }
+}
+
+// 输入框聚焦效果
+.input-glass {
+  &:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 143, 177, 0.2) !important;
+  }
+}
+
+// 滚动条可爱风格
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--primary-color), var(--primary-light));
+  border-radius: 10px;
+  border: 3px solid var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(var(--primary-dark), var(--primary-color));
+}
+
+// 页面加载动画
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.blog-card {
+  animation: fadeInUp 0.6s ease-out forwards;
+  
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.1}s;
+    }
+  }
+}
+
+// 鼠标点击撒花效果
+.click-sparkle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 20px;
+  animation: sparkle-fly 0.8s ease-out forwards;
+  z-index: 9999;
+}
+
+@keyframes sparkle-fly {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx), var(--ty)) rotate(360deg) scale(0.5);
+  }
+}
